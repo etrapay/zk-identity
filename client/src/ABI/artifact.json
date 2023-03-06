@@ -1,0 +1,319 @@
+{
+    "address": "0x9430A249623fF7B1c5a36Eac7662C3641A34a27C",
+    "abi": [
+        {
+            "inputs": [
+                {
+                    "internalType": "contract IHasher",
+                    "name": "_hasher",
+                    "type": "address"
+                },
+                {
+                    "internalType": "contract IVerifier",
+                    "name": "_verifier",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "constructor"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint32",
+                    "name": "index",
+                    "type": "uint32"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "bytes32",
+                    "name": "leaf",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "bytes32",
+                    "name": "root",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "bytes32[10]",
+                    "name": "pathElements",
+                    "type": "bytes32[10]"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint8[10]",
+                    "name": "pathIndices",
+                    "type": "uint8[10]"
+                }
+            ],
+            "name": "Register",
+            "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "ZERO_VALUE",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "uint256[2]",
+                            "name": "a",
+                            "type": "uint256[2]"
+                        },
+                        {
+                            "internalType": "uint256[2][2]",
+                            "name": "b",
+                            "type": "uint256[2][2]"
+                        },
+                        {
+                            "internalType": "uint256[2]",
+                            "name": "c",
+                            "type": "uint256[2]"
+                        },
+                        {
+                            "internalType": "uint256[6]",
+                            "name": "input",
+                            "type": "uint256[6]"
+                        }
+                    ],
+                    "internalType": "struct ZkIdentity.Proof",
+                    "name": "proof",
+                    "type": "tuple"
+                }
+            ],
+            "name": "checkAge",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "currentRoot",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "filledSubtrees",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getDate",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "year",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "month",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "day",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getLastRoot",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "_left",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "bytes32",
+                    "name": "_right",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "hashLeftRight",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "hasher",
+            "outputs": [
+                {
+                    "internalType": "contract IHasher",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "identities",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "_root",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "isKnownRoot",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "nextTreeIndex",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "identity",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "register",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "verifier",
+            "outputs": [
+                {
+                    "internalType": "contract IVerifier",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "zeros",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ]
+}
