@@ -13,6 +13,9 @@ import artifact from "./ABI/artifact.json";
 // Local storage hook
 import useLocalStorage from "use-local-storage";
 
+// Components
+import Footer from "./components/Footer";
+
 function App() {
   const [id, setId] = React.useState<string>("49873835388");
   const [day, setDay] = React.useState<number>(0);
@@ -28,6 +31,8 @@ function App() {
   const [root, setRoot] = useLocalStorage("root", "");
   const [pathElements, setPathElements] = useLocalStorage("pathElements", "");
   const [pathIndices, setPathIndices] = useLocalStorage("pathIndices", "");
+  const [lid, setlId] = useLocalStorage("lid", "");
+  const [bday, setBday] = useLocalStorage("bday", "");
 
   const contract = useContract({
     address: "0x360Fd0a0EdF66dB30f89424443Bf6C0Af9Ed6646",
@@ -49,7 +54,6 @@ function App() {
 
       // Make the number within the field size
       const hashStr = poseidon.F.toString(hash);
-      console.log(hashStr);
 
       const hashHex = BigNumber.from(hashStr).toHexString();
       // pad zero to make it 32 bytes, so that the output can be taken as a bytes32 contract argument
@@ -65,127 +69,208 @@ function App() {
       setRoot(root);
       setPathElements(pathElements);
       setPathIndices(pathIndices);
+
+      setlId(id);
+      setBday(`${day}/${month}/${year}`);
     } catch (e) {
       console.log(e);
     }
   };
 
   const onCheck = async () => {
-    if (!leaf || !root || !pathElements || !pathIndices) return;
+    if (!leaf || !root || !pathElements || !pathIndices || !lid || !bday)
+      return;
 
     const snarkjs = window.snarkjs;
 
     try {
+      console.log("Proving...");
+      const cday = new Date().getUTCDate();
+      const cmonth = new Date().getMonth() + 1;
+      const cyear = new Date().getFullYear();
+
       const input = {
-        tc: ["7", "2", "9", "5", "6", "5", "5", "6", "2", "5", "2"],
-        birthdate: ["2", "2", "2005"],
-        currentdate: ["6", "3", "2023"],
-        root: "3176374965215286996139141856407167738459476439549462353518042959695917572425",
-        pathElements: [
-          "21663839004416932945382355908790599225266501822907911457504978515578255421292",
-          "8995896153219992062710898675021891003404871425075198597897889079729967997688",
-          "15126246733515326086631621937388047923581111613947275249184377560170833782629",
-          "6404200169958188928270149728908101781856690902670925316782889389790091378414",
-          "17903822129909817717122288064678017104411031693253675943446999432073303897479",
-          "11423673436710698439362231088473903829893023095386581732682931796661338615804",
-          "10494842461667482273766668782207799332467432901404302674544629280016211342367",
-          "17400501067905286947724900644309270241576392716005448085614420258732805558809",
-          "7924095784194248701091699324325620647610183513781643345297447650838438175245",
-          "3170907381568164996048434627595073437765146540390351066869729445199396390350",
+        tc: lid.split("").map((x) => BigNumber.from(x).toString()),
+        birthdate: bday.split("/").map((x) => BigNumber.from(x).toString()),
+        currentdate: [
+          BigNumber.from(cday).toString(),
+          BigNumber.from(cmonth).toString(),
+          BigNumber.from(cyear).toString(),
         ],
-        pathIndices: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        leaf: "9446636441302590936210484803312685572524984347315367043401176974089965066742",
+        root: BigNumber.from(root).toString(),
+        pathElements: (pathElements as unknown as string[]).map((x) =>
+          BigNumber.from(x).toString()
+        ),
+        pathIndices: pathIndices as unknown as number[],
+        leaf: BigNumber.from(leaf).toString(),
       };
+
+      console.log(input);
 
       const { proof, publicSignals } = await snarkjs.groth16.fullProve(
         input,
-        "zk.wasm", // wasm file built-in
-        "zk.zkey", // zkey file built-in
+        "zk.wasm",
+        "zk.zkey",
         null
       );
-    } catch (error) {
-      console.log(error);
+
+      const solProof = {
+        a: [proof.pi_a[0].toString(), proof.pi_a[1].toString()],
+        b: [
+          [proof.pi_b[0][1].toString(), proof.pi_b[0][0].toString()],
+          [proof.pi_b[1][1].toString(), proof.pi_b[1][0].toString()],
+        ],
+        c: [proof.pi_c[0].toString(), proof.pi_c[1].toString()],
+        input: publicSignals.map((x: any) => x.toString()),
+      };
+
+      const t = await contract?.checkAge(solProof);
+      const r = await t.wait();
+      console.log(r);
+    } catch (error: any) {
+      // console.log(error);
+
+      if (
+        (error.message as unknown as string).includes(
+          "Error: Assert Failed. Error in template Example_145 line: 63"
+        )
+      ) {
+        alert("Not eligible");
+      }
     }
   };
 
   return (
-    <div className="flex justify-center h-screen">
-      <div className="m-auto flex flex-col w-4/12">
-        {leaf && root && pathElements && pathIndices ? (
-          <div className="w-full h-full flex">
-            <button
-              className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 w-60 mx-auto"
-              onClick={onCheck}
-            >
-              Check Age
-            </button>
-          </div>
-        ) : (
-          <>
-            <p className="text-2xl text-center mx-auto">Zk Identity</p>
-            <button
-              className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 w-60 mx-auto"
-              onClick={() => {
-                if (connectors.length > 0)
-                  connect({
-                    connector: connectors[0],
-                  });
-              }}
-            >
-              {isConnected && address
-                ? `Connected as ${address.slice(0, 6)}...${address.slice(-4)}`
-                : "Connect Wallet"}
-            </button>
-            <div className="mt-2">
-              <label className="block mb-2 text-sm font-medium text-gray-900">
-                TC
-              </label>
-              <input
-                value={id}
-                onChange={(e) => setId(e.target.value)}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 text-center"
-                placeholder="ID"
-              />
-            </div>
-            <div className="grid gap-6 mb-6 md:grid-cols-3 my-2">
-              <div>
+    <>
+      <div className="flex justify-center h-screen poppins">
+        <div className="m-auto flex flex-col w-6/12">
+          {leaf && root && pathElements && pathIndices && lid && bday ? (
+            <>
+              <p className="text-center text-4xl relative bottom-10">
+                Simple Zk Identity
+              </p>
+              <div className="w-full h-full flex">
+                <div className="w-5/12 p-10">
+                  <img
+                    src="https://cdn.discordapp.com/attachments/975016607233495042/1082350460524048414/0_org_zoom.png"
+                    alt="logo"
+                    style={{
+                      objectFit: "cover",
+                    }}
+                    className="mx-auto max-w-xs"
+                  />
+                </div>
+                <div className="w-7/12 pt-10 flex flex-col justify-center  pb-24">
+                  <p className="text-center font-bold text-2xl">
+                    Star Wars: A New Hope
+                  </p>
+                  <p className="text-md mt-2 text-left mx-2 font-light mb-10">
+                    An epic space adventure film about a young farmer named Luke
+                    Skywalker who discovers his destiny as a Jedi Knight, a
+                    legendary warrior who can harness the power of the Force.
+                    Together with his new allies, the dashing smuggler Han Solo
+                    and the wise Jedi Master Obi-Wan Kenobi, Luke must rescue
+                    Princess Leia from the clutches of the evil Empire and stop
+                    the sinister Darth Vader from crushing the rebellion. With
+                    thrilling action, dazzling special effects, and
+                    unforgettable characters, "Star Wars" is a classic sci-fi
+                    masterpiece that will transport you to a galaxy far, far
+                    away.
+                  </p>
+
+                  <div className="flex flex-row gap-5 mt-5 ml-2 justify-center">
+                    <img
+                      src="https://cdn.discordapp.com/attachments/975016607233495042/1082352449878245427/x.png"
+                      alt=".."
+                      className="my-auto w-20"
+                    />
+                    <img
+                      src="https://cdn.discordapp.com/attachments/975016607233495042/1082352450188607619/y.png"
+                      alt=".."
+                      className="my-auto w-20"
+                    />
+                  </div>
+                  <p className="text-center my-5 font-light text-gray-400 text-sm">
+                    In order to proceed, you are required to prove that you are
+                    at least 18 years old by clicking the button below.
+                  </p>
+                  <button
+                    className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center  w-60 h-max mx-auto"
+                    onClick={onCheck}
+                  >
+                    Prove My Age
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-2xl text-center mx-auto">Zk Identity</p>
+              <button
+                className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 w-60 mx-auto"
+                onClick={() => {
+                  if (connectors.length > 0)
+                    connect({
+                      connector: connectors[0],
+                    });
+                }}
+              >
+                {isConnected && address
+                  ? `Connected as ${address.slice(0, 6)}...${address.slice(-4)}`
+                  : "Connect Wallet"}
+              </button>
+              <div className="mt-2">
                 <label className="block mb-2 text-sm font-medium text-gray-900">
-                  Day
+                  TC
                 </label>
                 <input
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                  onChange={(e) => setDay(Number(e.target.value))}
+                  value={id}
+                  onChange={(e) => setId(e.target.value)}
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 text-center"
+                  placeholder="ID"
                 />
               </div>
-              <div>
-                <label className="block mb-2 text-sm font-medium text-gray-900">
-                  Month
-                </label>
-                <input
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                  onChange={(e) => setMonth(Number(e.target.value))}
-                />
+              <div className="grid gap-6 mb-6 md:grid-cols-3 my-2">
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900">
+                    Day
+                  </label>
+                  <input
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                    onChange={(e) => setDay(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900">
+                    Month
+                  </label>
+                  <input
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                    onChange={(e) => setMonth(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900">
+                    Year
+                  </label>
+                  <input
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                    onChange={(e) => setYear(Number(e.target.value))}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block mb-2 text-sm font-medium text-gray-900">
-                  Year
-                </label>
-                <input
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                  onChange={(e) => setYear(Number(e.target.value))}
-                />
-              </div>
-            </div>
-            <button
-              className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 w-60 mx-auto"
-              onClick={onRegister}
-            >
-              Register
-            </button>
-          </>
-        )}
+              <button
+                className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 w-60 mx-auto"
+                onClick={onRegister}
+              >
+                Register
+              </button>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 }
 
