@@ -1,24 +1,29 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useAccount, useConnect } from "wagmi";
 
 function App() {
+  const { connector: activeConnector, isConnected, address } = useAccount();
+  const { connect, connectors, error, isLoading, pendingConnector } =
+    useConnect();
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <div className="flex">
+      {isConnected && <div>Connected to {activeConnector?.name}</div>}
+
+      {connectors.map((connector) => (
+        <button
+          disabled={!connector.ready}
+          key={connector.id}
+          onClick={() => connect({ connector })}
         >
-          Learn React
-        </a>
-      </header>
+          {connector?.name}
+          {isLoading &&
+            pendingConnector?.id === connector.id &&
+            " (connecting)"}
+        </button>
+      ))}
+
+      {error && <div>{error.message}</div>}
+      {address && <div className="">Address: {address}</div>}
     </div>
   );
 }
