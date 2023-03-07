@@ -15,12 +15,17 @@ import useLocalStorage from "use-local-storage";
 
 // Components
 import Footer from "./components/Footer";
+import Modal from "./components/Modal";
+import Loading from "./components/Loading";
 
 function App() {
-  const [id, setId] = React.useState<string>("49873835388");
+  const [id, setId] = React.useState<string>("");
   const [day, setDay] = React.useState<number>(0);
   const [month, setMonth] = React.useState<number>(0);
   const [year, setYear] = React.useState<number>(0);
+
+  const [loading, setLoading] = React.useState<boolean>(false);
+  const [modalVisible, setModalVisible] = React.useState<boolean>(false);
 
   const { isConnected, address } = useAccount();
   const { connect, connectors } = useConnect();
@@ -41,6 +46,8 @@ function App() {
   });
 
   const onRegister = async () => {
+    setLoading(true);
+
     try {
       if (id.length !== 11 || day === 0 || month === 0 || year === 0) return;
 
@@ -72,8 +79,10 @@ function App() {
 
       setlId(id);
       setBday(`${day}/${month}/${year}`);
+      setLoading(false);
     } catch (e) {
       console.log(e);
+      setLoading(false);
     }
   };
 
@@ -81,6 +90,7 @@ function App() {
     if (!leaf || !root || !pathElements || !pathIndices || !lid || !bday)
       return;
 
+    setLoading(true);
     const snarkjs = window.snarkjs;
 
     try {
@@ -105,14 +115,14 @@ function App() {
         leaf: BigNumber.from(leaf).toString(),
       };
 
-      console.log(input);
-
+      console.time();
       const { proof, publicSignals } = await snarkjs.groth16.fullProve(
         input,
         "zk.wasm",
         "zk.zkey",
         null
       );
+      console.timeEnd();
 
       const solProof = {
         a: [proof.pi_a[0].toString(), proof.pi_a[1].toString()],
@@ -125,10 +135,12 @@ function App() {
       };
 
       const t = await contract?.checkAge(solProof);
-      const r = await t.wait();
-      console.log(r);
+      await t.wait();
+
+      setLoading(false);
+      setModalVisible(true);
     } catch (error: any) {
-      // console.log(error);
+      setLoading(false);
 
       if (
         (error.message as unknown as string).includes(
@@ -143,8 +155,16 @@ function App() {
   return (
     <>
       <div className="flex justify-center h-screen poppins">
+        <Loading visible={loading} />
+        <Modal visible={modalVisible} onClose={() => setModalVisible(false)} />
         <div className="m-auto flex flex-col w-6/12">
-          {leaf && root && pathElements && pathIndices && lid && bday ? (
+          {leaf &&
+          root &&
+          pathElements &&
+          pathIndices &&
+          lid &&
+          bday &&
+          address ? (
             <>
               <p className="text-center text-4xl relative bottom-10">
                 Simple Zk Identity
@@ -207,7 +227,7 @@ function App() {
             <>
               <p className="text-2xl text-center mx-auto">Zk Identity</p>
               <button
-                className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 w-60 mx-auto"
+                className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 mx-auto"
                 onClick={() => {
                   if (connectors.length > 0)
                     connect({
@@ -219,9 +239,9 @@ function App() {
                   ? `Connected as ${address.slice(0, 6)}...${address.slice(-4)}`
                   : "Connect Wallet"}
               </button>
-              <div className="mt-2">
+              <div className="mt-2 poppins">
                 <label className="block mb-2 text-sm font-medium text-gray-900">
-                  TC
+                  Enter TC (Turkish Citizen Number)
                 </label>
                 <input
                   value={id}
@@ -230,32 +250,29 @@ function App() {
                   placeholder="ID"
                 />
               </div>
-              <div className="grid gap-6 mb-6 md:grid-cols-3 my-2">
+              <label className="mb-2 font-medium text-sm mt-4 text-gray-900 block">
+                Enter Your Birthday
+              </label>
+              <div className="grid gap-6 md:grid-cols-3 mb-6">
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900">
-                    Day
-                  </label>
                   <input
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
                     onChange={(e) => setDay(Number(e.target.value))}
+                    placeholder="Day"
                   />
                 </div>
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900">
-                    Month
-                  </label>
                   <input
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
                     onChange={(e) => setMonth(Number(e.target.value))}
+                    placeholder="Month"
                   />
                 </div>
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900">
-                    Year
-                  </label>
                   <input
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
                     onChange={(e) => setYear(Number(e.target.value))}
+                    placeholder="Year"
                   />
                 </div>
               </div>
