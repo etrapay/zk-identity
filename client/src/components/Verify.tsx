@@ -2,12 +2,12 @@ import React from "react";
 
 const Verify = ({ onCheck }: { onCheck: () => void }) => {
   return (
-    <div className="m-auto w-full pb-10 sm:w-6/12">
+    <div className="m-auto w-full pb-10 md:w-6/12 lg:w-10/12 xl:w-10/12">
       <p className="text-center text-2xl md:text-4xl my-10">
         Simple Zk Identity
       </p>
-      <div className="w-full flex flex-col sm:flex-row">
-        <div className="w-full mx-auto sm:w-4/12">
+      <div className="w-full flex flex-col xl:flex-row">
+        <div className="w-full mx-auto xl:w-4/12">
           <img
             src={"/starwars.png"}
             alt="logo"
@@ -17,7 +17,7 @@ const Verify = ({ onCheck }: { onCheck: () => void }) => {
             className="mx-auto max-w-xs rounded-lg"
           />
         </div>
-        <div className="flex flex-col justify-center sm:w-8/12">
+        <div className="flex flex-col justify-center xl:w-8/12">
           <p className="text-center font-bold text-2xl my-4">
             Star Wars: A New Hope
           </p>
