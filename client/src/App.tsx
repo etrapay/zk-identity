@@ -5,7 +5,13 @@ import { buildPoseidon } from "circomlibjs";
 import { BigNumber, ethers } from "ethers";
 
 // Wagmi hooks
-import { useAccount, useSigner, useContract } from "wagmi";
+import {
+  useAccount,
+  useSigner,
+  useContract,
+  useNetwork,
+  useSwitchNetwork,
+} from "wagmi";
 
 // Contract ABI
 import artifact from "./ABI/artifact.json";
@@ -28,6 +34,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { toggleLoading } from "./store/actions/actions";
 
 function App() {
+  const { chain } = useNetwork();
+  const { chains, error, isLoading, pendingChainId, switchNetwork } =
+    useSwitchNetwork();
+
+  console.log("chain", chain);
+  console.log("chains", chains);
+  console.log("error", error);
+  console.log("isLoading", isLoading);
+  console.log("pendingChainId", pendingChainId);
+
   // Modal Visibility
   const [modalVisible, setModalVisible] = React.useState<boolean>(false);
 
@@ -161,7 +177,25 @@ function App() {
 
   return (
     <>
-      <div className="flex justify-center h-screen poppins">
+      {address && chain && chain.id !== 43113 && (
+        <div
+          className="w-screen h-screen absolute bottom-0 z-10 flex poppins"
+          style={{
+            background: "rgba(60, 60, 60, 0.4)",
+          }}
+        >
+          <div className="m-auto bg-white opacity-100 w-11/12 sm:w-52 rounded-md py-4 flex flex-col">
+            <p className="text-center">Wrong Network</p>
+            <button
+              className="text-white bg-red-400 hover:bg-red-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 mx-auto"
+              onClick={() => switchNetwork!(43113)}
+            >
+              Switch Network
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="flex justify-center h-screen poppins z-0">
         <ErrorModal
           visible={isError}
           onClose={() => setIsError(false)}
