@@ -38,12 +38,6 @@ function App() {
   const { chains, error, isLoading, pendingChainId, switchNetwork } =
     useSwitchNetwork();
 
-  console.log("chain", chain);
-  console.log("chains", chains);
-  console.log("error", error);
-  console.log("isLoading", isLoading);
-  console.log("pendingChainId", pendingChainId);
-
   // Modal Visibility
   const [modalVisible, setModalVisible] = React.useState<boolean>(false);
 
