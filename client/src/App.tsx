@@ -65,7 +65,7 @@ function App() {
 
   // Contract
   const contract = useContract({
-    address: "0x360Fd0a0EdF66dB30f89424443Bf6C0Af9Ed6646",
+    address: "0xd420d4785f0018e8e244cAf0cB405788a01a0603",
     abi: artifact.abi,
     signerOrProvider: signer,
   });
