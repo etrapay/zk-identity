@@ -1,0 +1,3 @@
+export const ACTION_TYPES = {
+  TOGGLE_LOADING: "TOGGLE_LOADING",
+};

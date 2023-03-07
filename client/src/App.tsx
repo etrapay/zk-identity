@@ -5,7 +5,7 @@ import { buildPoseidon } from "circomlibjs";
 import { BigNumber, ethers } from "ethers";
 
 // Wagmi hooks
-import { useAccount, useConnect, useSigner, useContract } from "wagmi";
+import { useAccount, useSigner, useContract } from "wagmi";
 
 // Contract ABI
 import artifact from "./ABI/artifact.json";
@@ -17,20 +17,23 @@ import useLocalStorage from "use-local-storage";
 import Footer from "./components/Footer";
 import Modal from "./components/Modal";
 import Loading from "./components/Loading";
+import { Register } from "./components";
+
+// Redux
+import { useDispatch, useSelector } from "react-redux";
+import { toggleLoading } from "./store/actions/actions";
 
 function App() {
-  const [id, setId] = React.useState<string>("");
+  const [modalVisible, setModalVisible] = React.useState<boolean>(false);
+
+  const { address } = useAccount();
+  const { data: signer } = useSigner();
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [id, setId] = React.useState<string>("31872029776");
   const [day, setDay] = React.useState<number>(0);
   const [month, setMonth] = React.useState<number>(0);
   const [year, setYear] = React.useState<number>(0);
-
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const [modalVisible, setModalVisible] = React.useState<boolean>(false);
-
-  const { isConnected, address } = useAccount();
-  const { connect, connectors } = useConnect();
-
-  const { data: signer } = useSigner();
 
   const [leaf, setLeaf] = useLocalStorage("leaf", "");
   const [root, setRoot] = useLocalStorage("root", "");
@@ -39,58 +42,20 @@ function App() {
   const [lid, setlId] = useLocalStorage("lid", "");
   const [bday, setBday] = useLocalStorage("bday", "");
 
+  const { loading } = useSelector((state: any) => state.main);
+  const dispatch = useDispatch();
+
   const contract = useContract({
     address: "0x360Fd0a0EdF66dB30f89424443Bf6C0Af9Ed6646",
     abi: artifact.abi,
     signerOrProvider: signer,
   });
 
-  const onRegister = async () => {
-    setLoading(true);
-
-    try {
-      if (id.length !== 11 || day === 0 || month === 0 || year === 0) return;
-
-      const data = id.split("").map((x) => String(x));
-      data.push(String(day));
-      data.push(String(month));
-      data.push(String(year));
-
-      const poseidon = await buildPoseidon(14);
-      const hash = poseidon(data.map((x) => BigNumber.from(x).toBigInt()));
-
-      // Make the number within the field size
-      const hashStr = poseidon.F.toString(hash);
-
-      const hashHex = BigNumber.from(hashStr).toHexString();
-      // pad zero to make it 32 bytes, so that the output can be taken as a bytes32 contract argument
-      const identity = ethers.utils.hexZeroPad(hashHex, 32);
-
-      const t = await contract?.register(identity);
-      // console.log(t.wait());
-      const r = await t.wait();
-
-      const { leaf, pathElements, pathIndices, root } = r.events[0].args;
-
-      setLeaf(leaf);
-      setRoot(root);
-      setPathElements(pathElements);
-      setPathIndices(pathIndices);
-
-      setlId(id);
-      setBday(`${day}/${month}/${year}`);
-      setLoading(false);
-    } catch (e) {
-      console.log(e);
-      setLoading(false);
-    }
-  };
-
   const onCheck = async () => {
     if (!leaf || !root || !pathElements || !pathIndices || !lid || !bday)
       return;
 
-    setLoading(true);
+    dispatch(toggleLoading());
     const snarkjs = window.snarkjs;
 
     try {
@@ -137,10 +102,10 @@ function App() {
       const t = await contract?.checkAge(solProof);
       await t.wait();
 
-      setLoading(false);
+      dispatch({ type: "TOGGLE_LOADING" });
       setModalVisible(true);
     } catch (error: any) {
-      setLoading(false);
+      dispatch({ type: "TOGGLE_LOADING" });
 
       if (
         (error.message as unknown as string).includes(
@@ -149,6 +114,38 @@ function App() {
       ) {
         alert("Not eligible");
       }
+    }
+  };
+
+  const onRegister = async () => {
+    dispatch({ type: "TOGGLE_LOADING" });
+    try {
+      // User should fill all the required fields
+      if (id.length !== 11 || day === 0 || month === 0 || year === 0) return;
+      const data = id.split("").map((x) => String(x));
+      data.push(...[String(day), String(month), String(year)]);
+      // Poseidon hash builder
+      const poseidon = await buildPoseidon(14);
+      const hash = poseidon(data.map((x) => BigNumber.from(x).toBigInt()));
+      const hashStr = poseidon.F.toString(hash);
+      const hashHex = BigNumber.from(hashStr).toHexString();
+      const identity = ethers.utils.hexZeroPad(hashHex, 32);
+      // Register identity
+      const t = await contract?.register(identity);
+      // If transaction has receipt, then it is successful and we can get the event data
+      const r = await t.wait();
+      const { leaf, pathElements, pathIndices, root } = r.events[0].args;
+      // Save data to local storage (leaf, root, pathElements, pathIndices)
+      setLeaf(leaf);
+      setRoot(root);
+      setPathElements(pathElements);
+      setPathIndices(pathIndices);
+      setlId(id);
+      setBday(`${day}/${month}/${year}`);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      dispatch({ type: "TOGGLE_LOADING" });
     }
   };
 
@@ -224,65 +221,13 @@ function App() {
               </div>
             </>
           ) : (
-            <>
-              <p className="text-2xl text-center mx-auto">Zk Identity</p>
-              <button
-                className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 mx-auto"
-                onClick={() => {
-                  if (connectors.length > 0)
-                    connect({
-                      connector: connectors[0],
-                    });
-                }}
-              >
-                {isConnected && address
-                  ? `Connected as ${address.slice(0, 6)}...${address.slice(-4)}`
-                  : "Connect Wallet"}
-              </button>
-              <div className="mt-2 poppins">
-                <label className="block mb-2 text-sm font-medium text-gray-900">
-                  Enter TC (Turkish Citizen Number)
-                </label>
-                <input
-                  value={id}
-                  onChange={(e) => setId(e.target.value)}
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 text-center"
-                  placeholder="ID"
-                />
-              </div>
-              <label className="mb-2 font-medium text-sm mt-4 text-gray-900 block">
-                Enter Your Birthday
-              </label>
-              <div className="grid gap-6 md:grid-cols-3 mb-6">
-                <div>
-                  <input
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                    onChange={(e) => setDay(Number(e.target.value))}
-                    placeholder="Day"
-                  />
-                </div>
-                <div>
-                  <input
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                    onChange={(e) => setMonth(Number(e.target.value))}
-                    placeholder="Month"
-                  />
-                </div>
-                <div>
-                  <input
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                    onChange={(e) => setYear(Number(e.target.value))}
-                    placeholder="Year"
-                  />
-                </div>
-              </div>
-              <button
-                className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 w-60 mx-auto"
-                onClick={onRegister}
-              >
-                Register
-              </button>
-            </>
+            <Register
+              onRegister={() => onRegister()}
+              onIdChange={(v: string) => setId(v)}
+              onDayChange={(n: number) => setDay(Number(n))}
+              onYearChange={(n: number) => setYear(Number(n))}
+              onMonthChange={(n: number) => setMonth(Number(n))}
+            />
           )}
         </div>
       </div>
