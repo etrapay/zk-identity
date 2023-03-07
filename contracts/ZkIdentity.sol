@@ -40,11 +40,6 @@ contract ZkIdentity is MerkleTree {
 
     /// @dev Register identity
     function register(bytes32 identity) external {
-        require(
-            identities[msg.sender] == bytes32(0),
-            "ZkIdentity: Identity already exists"
-        );
-
         identities[msg.sender] = identity;
 
         (
