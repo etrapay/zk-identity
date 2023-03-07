@@ -14,7 +14,14 @@ import artifact from "./ABI/artifact.json";
 import useLocalStorage from "use-local-storage";
 
 // Components
-import { Register, Loading, Modal, Footer, Verify } from "./components";
+import {
+  Register,
+  Loading,
+  Modal,
+  Footer,
+  Verify,
+  ErrorModal,
+} from "./components";
 
 // Redux
 import { useDispatch, useSelector } from "react-redux";
@@ -41,6 +48,8 @@ function App() {
   const [lid, setlId] = useLocalStorage("lid", "");
   const [bday, setBday] = useLocalStorage("bday", "");
 
+  const [isError, setIsError] = React.useState<boolean>(false);
+
   // Redux
   const { loading } = useSelector((state: any) => state.main);
   const dispatch = useDispatch();
@@ -56,15 +65,20 @@ function App() {
     if (!leaf || !root || !pathElements || !pathIndices || !lid || !bday)
       return;
 
+    // Dispatch loading action
     dispatch(toggleLoading());
-    const snarkjs = window.snarkjs;
 
+    // snarkjs
+    const snarkjs = window.snarkjs;
     try {
       console.log("Proving...");
+
+      // Fetching the current date for the proof
       const cday = new Date().getUTCDate();
       const cmonth = new Date().getMonth() + 1;
       const cyear = new Date().getFullYear();
 
+      // Building the input for the proof
       const input = {
         tc: lid.split("").map((x) => BigNumber.from(x).toString()),
         birthdate: bday.split("/").map((x) => BigNumber.from(x).toString()),
@@ -81,15 +95,15 @@ function App() {
         leaf: BigNumber.from(leaf).toString(),
       };
 
-      console.time();
+      // Creating input for the proof
       const { proof, publicSignals } = await snarkjs.groth16.fullProve(
         input,
         "zk.wasm",
         "zk.zkey",
         null
       );
-      console.timeEnd();
 
+      // Format the proof for the contract
       const solProof = {
         a: [proof.pi_a[0].toString(), proof.pi_a[1].toString()],
         b: [
@@ -100,6 +114,7 @@ function App() {
         input: publicSignals.map((x: any) => x.toString()),
       };
 
+      // Send transaction with proof if it is valid and wait for the receipt
       const t = await contract?.checkAge(solProof);
       await t.wait();
 
@@ -107,15 +122,7 @@ function App() {
       setModalVisible(true);
     } catch (error: any) {
       dispatch({ type: "TOGGLE_LOADING" });
-
-      if (
-        (error.message as unknown as string).includes(
-          "Error: Assert Failed. Error in template Example_145 line: 63"
-        )
-      ) {
-        alert("Not eligible");
-      } else {
-      }
+      setIsError(true);
     }
   };
 
@@ -155,8 +162,49 @@ function App() {
   return (
     <>
       <div className="flex justify-center h-screen poppins">
+        <ErrorModal
+          visible={isError}
+          onClose={() => setIsError(false)}
+          content={
+            <div className="flex flex-col">
+              <h2 className="text-center my-3">
+                Unable to create a proof. Either the TC number is incorrect, or
+                you are not older than 18.
+              </h2>
+              <img src="/error.png" alt="..." className="w-20 mx-auto" />
+              <button
+                className="text-white bg-red-400 hover:bg-red-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 w-60 mx-auto h-min mt-5"
+                onClick={() => {
+                  setIsError(false);
+                }}
+              >
+                OK!
+              </button>
+            </div>
+          }
+        />
         <Loading visible={loading} />
-        <Modal visible={modalVisible} onClose={() => setModalVisible(false)} />
+        <Modal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          content={
+            <>
+              <h2 className="text-center my-3">You are eligible!</h2>
+              <button
+                className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 w-60 mx-auto h-min"
+                onClick={() => {
+                  window.open(
+                    "https://www.youtube.com/watch?v=vZ734NWnAHA&ab_channel=StarWars",
+                    "_blank"
+                  );
+                  setModalVisible(false);
+                }}
+              >
+                Watch Movie
+              </button>
+            </>
+          }
+        />
         {leaf &&
         root &&
         pathElements &&

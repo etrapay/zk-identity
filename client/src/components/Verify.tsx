@@ -9,7 +9,7 @@ const Verify = ({ onCheck }: { onCheck: () => void }) => {
       <div className="w-full flex flex-col sm:flex-row">
         <div className="w-full mx-auto sm:w-4/12">
           <img
-            src="https://cdn.discordapp.com/attachments/975016607233495042/1082350460524048414/0_org_zoom.png"
+            src={"/starwars.png"}
             alt="logo"
             style={{
               objectFit: "cover",
@@ -33,16 +33,8 @@ const Verify = ({ onCheck }: { onCheck: () => void }) => {
             masterpiece that will transport you to a galaxy far, far away.
           </p>
           <div className="flex flex-row gap-5 mt-5 ml-2 justify-center">
-            <img
-              src="https://cdn.discordapp.com/attachments/975016607233495042/1082352449878245427/x.png"
-              alt=".."
-              className="my-auto w-20"
-            />
-            <img
-              src="https://cdn.discordapp.com/attachments/975016607233495042/1082352450188607619/y.png"
-              alt=".."
-              className="my-auto w-20"
-            />
+            <img src="/p18.png" alt=".." className="my-auto w-20" />
+            <img src="/adultcontent.png" alt=".." className="my-auto w-20" />
           </div>
           <p className="text-center my-5 font-light text-gray-400 text-sm w-11/12 mx-auto">
             In order to proceed, you are required to prove that you are at least

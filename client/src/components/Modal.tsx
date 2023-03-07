@@ -15,9 +15,11 @@ const customStyles = {
 const Modal = ({
   visible,
   onClose,
+  content,
 }: {
   visible: boolean;
   onClose: () => void;
+  content: React.ReactNode;
 }) => {
   return (
     <ReactModal
@@ -26,21 +28,7 @@ const Modal = ({
       style={customStyles}
       ariaHideApp={false}
     >
-      <div className="poppins mx-10">
-        <h2 className="text-center my-3">You are eligible!</h2>
-        <button
-          className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 w-60 mx-auto h-min"
-          onClick={() => {
-            window.open(
-              "https://www.youtube.com/watch?v=vZ734NWnAHA&ab_channel=StarWars",
-              "_blank"
-            );
-            onClose();
-          }}
-        >
-          Watch Movie
-        </button>
-      </div>
+      <div className="poppins mx-10">{content}</div>
     </ReactModal>
   );
 };
