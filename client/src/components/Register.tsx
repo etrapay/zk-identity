@@ -1,5 +1,3 @@
-import React from "react";
-
 // Wagmi Hooks
 import { useAccount, useConnect } from "wagmi";
 
@@ -20,7 +18,7 @@ const Register = ({
   const { connect, connectors } = useConnect();
 
   return (
-    <React.Fragment>
+    <div className="m-auto flex flex-col w-full md:w-6/12">
       <p className="text-2xl text-center mx-auto">Zk Identity</p>
       <button
         className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 mx-auto"
@@ -77,7 +75,7 @@ const Register = ({
       >
         Register
       </button>
-    </React.Fragment>
+    </div>
   );
 };
 
