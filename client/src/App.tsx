@@ -35,8 +35,7 @@ import { toggleLoading } from "./store/actions/actions";
 
 function App() {
   const { chain } = useNetwork();
-  const { chains, error, isLoading, pendingChainId, switchNetwork } =
-    useSwitchNetwork();
+  const { switchNetwork } = useSwitchNetwork();
 
   // Modal Visibility
   const [modalVisible, setModalVisible] = React.useState<boolean>(false);
