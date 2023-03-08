@@ -90,7 +90,9 @@ function App() {
       // Building the input for the proof
       const input = {
         tc: lid.split("").map((x) => BigNumber.from(x).toString()),
-        birthdate: bday.split("/").map((x) => BigNumber.from(x).toString()),
+        birthdate: bday
+          .split("/")
+          .map((x) => BigNumber.from(parseInt(x)).toString()),
         currentdate: [
           BigNumber.from(cday).toString(),
           BigNumber.from(cmonth).toString(),
