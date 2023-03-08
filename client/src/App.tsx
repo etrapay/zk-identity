@@ -140,7 +140,7 @@ function App() {
   const onRegister = async () => {
     dispatch({ type: "TOGGLE_LOADING" });
     try {
-      console.log({
+      console.error({
         day,
         month,
         year,
