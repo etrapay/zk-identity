@@ -140,6 +140,12 @@ function App() {
   const onRegister = async () => {
     dispatch({ type: "TOGGLE_LOADING" });
     try {
+      console.log({
+        day,
+        month,
+        year,
+      });
+
       // User should fill all the required fields
       if (id.length !== 11 || day === 0 || month === 0 || year === 0) return;
       const data = id.split("").map((x) => String(x));
