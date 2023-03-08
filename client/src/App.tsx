@@ -156,7 +156,7 @@ function App() {
 
       // Poseidon hash builder
       const poseidon = await buildPoseidon(14);
-      console.error(data);
+      console.error(poseidon);
       const hash = poseidon(data);
       console.error(hash);
 
