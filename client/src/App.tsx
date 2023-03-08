@@ -150,12 +150,20 @@ function App() {
       if (id.length !== 11 || day === 0 || month === 0 || year === 0) return;
       const data = id.split("").map((x) => String(x));
       data.push(...[String(day), String(month), String(year)]);
+
+      console.error(data);
       // Poseidon hash builder
       const poseidon = await buildPoseidon(14);
       const hash = poseidon(data.map((x) => BigNumber.from(x).toBigInt()));
+      console.error(hash);
+
       const hashStr = poseidon.F.toString(hash);
+      console.error(hashStr);
+
       const hashHex = BigNumber.from(hashStr).toHexString();
+      console.error(hashHex);
       const identity = ethers.utils.hexZeroPad(hashHex, 32);
+      console.error(identity);
       // Register identity
       const t = await contract?.register(identity);
       // If transaction has receipt, then it is successful and we can get the event data
