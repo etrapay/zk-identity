@@ -151,14 +151,11 @@ function App() {
       const data = id.split("").map((x) => String(x));
       data.push(...[String(day), String(month), String(year)]);
 
-      console.error(data);
       // Poseidon hash builder
       const poseidon = await buildPoseidon(14);
-      const hash = poseidon(data.map((x) => BigNumber.from(x).toBigInt()));
-      console.error(hash);
+      const hash = poseidon(data);
 
       const hashStr = poseidon.F.toString(hash);
-      console.error(hashStr);
 
       const hashHex = BigNumber.from(hashStr).toHexString();
       console.error(hashHex);
