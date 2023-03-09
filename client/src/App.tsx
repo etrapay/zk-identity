@@ -148,6 +148,7 @@ function App() {
 
       // User should fill all the required fields
       if (id.length !== 11 || day === 0 || month === 0 || year === 0) return;
+      console.error(id);
       const data = id.split("").map((x) => String(x));
       console.error(data);
       data.push(...[String(day), String(month), String(year)]);
