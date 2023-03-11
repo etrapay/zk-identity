@@ -66,7 +66,7 @@ function App() {
 
   // Contract
   const contract = useContract({
-    address: "0xd420d4785f0018e8e244cAf0cB405788a01a0603", // Deployed contract address
+    address: "0xcbF35Df30f2E3E03fF480415E77719417Ab06181", // Deployed contract address
     abi: artifact.abi,
     signerOrProvider: signer,
   });
