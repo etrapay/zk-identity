@@ -29,7 +29,7 @@ const Register = ({
     <div className="m-auto flex flex-col w-11/12 md:w-6/12">
       <p className="text-2xl text-center mx-auto">Zk Identity</p>
       <button
-        className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 mx-auto my-5"
+        className="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 mx-auto"
         onClick={() => {
           if (connectors.length > 0)
             connect({
