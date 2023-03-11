@@ -1,5 +1,3 @@
-import React from "react";
-
 const Verify = ({ onCheck }: { onCheck: () => void }) => {
   return (
     <div className="m-auto w-full pb-10 md:w-6/12 lg:w-10/12 xl:w-10/12">

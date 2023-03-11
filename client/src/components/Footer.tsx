@@ -14,7 +14,7 @@ const Footer = () => {
     >
       Built by{" "}
       <a
-        href="https://twitter.com/EtrapayInc"
+        href="https://www.etrapay.com/"
         target={"_blank"}
         rel="noopener noreferrer"
         className="text-blue-400"
