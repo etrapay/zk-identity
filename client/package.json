@@ -15,6 +15,7 @@
     "ethers": "^5.7.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-icons": "^4.8.0",
     "react-modal": "^3.16.1",
     "react-redux": "^8.0.5",
     "react-scripts": "5.0.1",
@@ -40,6 +41,8 @@
   "browserslist": {
     "production": [
       ">0.2%",
+      "not ie <= 99",
+      "not android <= 4.4.4",
       "not dead",
       "not op_mini all"
     ],

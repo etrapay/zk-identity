@@ -27,6 +27,7 @@ import {
   Footer,
   Verify,
   ErrorModal,
+  randomId,
 } from "./components";
 
 // Redux
@@ -44,7 +45,7 @@ function App() {
   const { data: signer } = useSigner();
 
   // React States
-  const [id, setId] = React.useState<string>("31872029776");
+  const [id, setId] = React.useState<string>("");
   const [day, setDay] = React.useState<number>(0);
   const [month, setMonth] = React.useState<number>(0);
   const [year, setYear] = React.useState<number>(0);
@@ -57,7 +58,7 @@ function App() {
   const [lid, setlId] = useLocalStorage("lid", "");
   const [bday, setBday] = useLocalStorage("bday", "");
 
-  const [isError, setIsError] = React.useState<boolean>(false);
+  const [isError, setIsError] = React.useState<string>("");
 
   // Redux
   const { loading } = useSelector((state: any) => state.main);
@@ -65,11 +66,17 @@ function App() {
 
   // Contract
   const contract = useContract({
-    address: "0xd420d4785f0018e8e244cAf0cB405788a01a0603",
+    address: "0xd420d4785f0018e8e244cAf0cB405788a01a0603", // Deployed contract address
     abi: artifact.abi,
     signerOrProvider: signer,
   });
 
+  /**
+   * @description Function to handle the check button in Verify component
+   * @dev This function will create in input for the proof and try to generate proof with snarkjs
+   *       If the proof is valid, then it will send the proof to the contract and wait for the receipt
+   *       If the proof is invalid, then it will show an error message to the user
+   */
   const onCheck = async () => {
     if (!leaf || !root || !pathElements || !pathIndices || !lid || !bday)
       return;
@@ -132,23 +139,48 @@ function App() {
       dispatch({ type: "TOGGLE_LOADING" });
       setModalVisible(true);
     } catch (error: any) {
+      console.log(error.message);
       dispatch({ type: "TOGGLE_LOADING" });
-      setIsError(true);
+
+      if ((error.message as string).includes("user rejected transaction")) {
+        setIsError("Transaction rejected");
+      } else {
+        setIsError(
+          "Unable to create a proof. Either the TC number is incorrect, or you are not older than 18."
+        );
+      }
     }
   };
 
+  /**
+   * @description Function to handle the register button in Register component
+   *  @dev This function will create the identity from the id, day, month and year with poseidon algorithm and then
+   *      it will send the identity to the contract and wait for the receipt.
+   *      After identity registered to the contract, all the required data will be saved in the local storage for the proof
+   */
   const onRegister = async () => {
     dispatch({ type: "TOGGLE_LOADING" });
     try {
       // User should fill all the required fields
       if (id.length !== 11 || day === 0 || month === 0 || year === 0) return;
+
+      // Build the identity from the id, day, month and year
       const data = id.split("").map((x) => String(x));
       data.push(...[String(day), String(month), String(year)]);
+
       // Poseidon hash builder
-      const poseidon = await buildPoseidon(14);
-      const hash = poseidon(data.map((x) => BigNumber.from(x).toBigInt()));
+      const poseidon = await buildPoseidon();
+
+      // Hash the data
+      const hash = poseidon(data);
+
+      // Convert hash to string
       const hashStr = poseidon.F.toString(hash);
+
+      // Convert hash to hex
       const hashHex = BigNumber.from(hashStr).toHexString();
+
+      // Pad the hash to 32 bytes for the contract
       const identity = ethers.utils.hexZeroPad(hashHex, 32);
       // Register identity
       const t = await contract?.register(identity);
@@ -169,6 +201,11 @@ function App() {
       dispatch({ type: "TOGGLE_LOADING" });
     }
   };
+
+  // We will generate random id for the user
+  React.useEffect(() => {
+    setId(randomId());
+  }, []);
 
   return (
     <>
@@ -192,19 +229,16 @@ function App() {
       )}
       <div className="flex justify-center h-screen poppins z-0">
         <ErrorModal
-          visible={isError}
-          onClose={() => setIsError(false)}
+          visible={Boolean(isError.length)}
+          onClose={() => setIsError("")}
           content={
             <div className="flex flex-col">
-              <h2 className="text-center my-3">
-                Unable to create a proof. Either the TC number is incorrect, or
-                you are not older than 18.
-              </h2>
+              <h2 className="text-center my-3">{isError}</h2>
               <img src="/error.png" alt="..." className="w-20 mx-auto" />
               <button
                 className="text-white bg-red-400 hover:bg-red-500 font-medium rounded-full text-sm px-5 py-2.5 text-center my-2 w-60 mx-auto h-min mt-5"
                 onClick={() => {
-                  setIsError(false);
+                  setIsError("");
                 }}
               >
                 OK!
@@ -244,6 +278,7 @@ function App() {
           <Verify onCheck={onCheck} />
         ) : (
           <Register
+            id={id}
             onRegister={() => onRegister()}
             onIdChange={(v: string) => setId(v)}
             onDayChange={(n: number) => setDay(Number(n))}
