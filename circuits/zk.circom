@@ -1,6 +1,6 @@
 pragma circom 2.1.2;
 
-include "./circomlib/poseidon.circom";
+include "../node_modules/circomlib/poseidon.circom";
 
 template DualMux() {
     signal input in[2];
